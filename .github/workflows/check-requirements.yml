@@ -60,6 +60,24 @@ jobs:
           import sys
           import os
           from typing import Set
+          import sysconfig
+          
+          def is_stdlib_module(module_name: str) -> bool:
+              """Check if a module is part of Python's standard library."""
+              try:
+                  # Get the standard library path
+                  stdlib_path = sysconfig.get_path('stdlib')
+                  # Try to find the module in the standard library
+                  module_path = sysconfig.get_path('purelib', vars={'base': stdlib_path})
+                  return os.path.exists(os.path.join(module_path, module_name))
+              except:
+                  return False
+          
+          def is_local_module(module_name: str) -> bool:
+              """Check if a module is part of the local project."""
+              # Add any local module names that should be excluded
+              local_modules = {'mcp_client', 'handlers', 'utils'}
+              return module_name in local_modules
           
           def get_imports(file_path: str) -> Set[str]:
               with open(file_path, 'r') as f:
@@ -69,10 +87,14 @@ jobs:
               for node in ast.walk(tree):
                   if isinstance(node, ast.Import):
                       for name in node.names:
-                          imports.add(name.name.split('.')[0])
+                          module_name = name.name.split('.')[0]
+                          if not is_stdlib_module(module_name) and not is_local_module(module_name):
+                              imports.add(module_name)
                   elif isinstance(node, ast.ImportFrom):
                       if node.module:
-                          imports.add(node.module.split('.')[0])
+                          module_name = node.module.split('.')[0]
+                          if not is_stdlib_module(module_name) and not is_local_module(module_name):
+                              imports.add(module_name)
               
               return imports
           
