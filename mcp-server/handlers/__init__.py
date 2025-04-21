@@ -1,3 +1,3 @@
 """
-MCP Server handlers package
+Handlers package for mcp-server
 """ 

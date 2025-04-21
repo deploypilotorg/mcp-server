@@ -12,7 +12,7 @@ import subprocess
 import socket
 from typing import Dict, Any, List
 
-from ..utils.tool_base import BaseHandler, ToolExecution
+from utils.tool_base import BaseHandler, ToolExecution
 
 class UIGeneratorToolHandler(BaseHandler):
     """Handler for generating and running UIs for applications"""
