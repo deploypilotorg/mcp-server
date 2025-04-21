@@ -35,7 +35,14 @@ jobs:
           else
             git diff --name-only HEAD~1 HEAD -- '*.py' > changed_files.txt
           fi
-          echo "CHANGED_FILES=$(cat changed_files.txt)" >> $GITHUB_ENV
+          
+          # Read the file and set environment variable properly
+          if [ -f changed_files.txt ]; then
+            CHANGED_FILES=$(cat changed_files.txt | tr '\n' ' ')
+            echo "CHANGED_FILES=${CHANGED_FILES}" >> $GITHUB_ENV
+          else
+            echo "CHANGED_FILES=" >> $GITHUB_ENV
+          fi
           
       - name: Check for new imports
         id: check-imports
