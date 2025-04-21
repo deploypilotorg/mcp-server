@@ -6,7 +6,7 @@ import subprocess
 import json
 from typing import Dict, Any, List
 
-from ..utils.tool_base import BaseHandler, ToolExecution
+from utils.tool_base import BaseHandler, ToolExecution
 
 class CodeAnalysisToolHandler(BaseHandler):
     """Handler for analyzing code repositories"""

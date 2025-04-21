@@ -21,7 +21,7 @@ from utils.tool_base import ToolExecution
 
 # Setup logging
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
@@ -298,9 +298,18 @@ class MCPServer:
     async def http_execute_tool(self, request):
         """HTTP handler for execute_tool request"""
         try:
+            logger.debug("Received execute_tool request")
+            raw_body = await request.text()
+            logger.debug(f"Raw request body: {raw_body}")
+            
             data = await request.json()
+            logger.debug(f"Parsed JSON data: {data}")
+            
             tool_name = data.get("name")
             arguments = data.get("arguments", {})
+            
+            logger.debug(f"Tool name: {tool_name}")
+            logger.debug(f"Arguments: {arguments}")
             
             if not tool_name:
                 return web.json_response({

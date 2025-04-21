@@ -5,7 +5,7 @@ import os
 import asyncio
 from typing import Dict, Any
 
-from ..utils.tool_base import BaseHandler, ToolExecution
+from utils.tool_base import BaseHandler, ToolExecution
 
 class CommandExecutionToolHandler(BaseHandler):
     """Handler for executing system commands"""

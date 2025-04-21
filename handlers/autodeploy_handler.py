@@ -9,7 +9,7 @@ import shutil
 import asyncio
 from typing import Dict, Any, Optional, List
 
-from ..utils.tool_base import BaseHandler, ToolExecution
+from utils.tool_base import BaseHandler, ToolExecution
 
 class AutoDeployToolHandler(BaseHandler):
     """Handler for automatically deploying code repositories"""

@@ -4,7 +4,7 @@ Basic tool handlers for time, calculation and weather.
 from datetime import datetime
 from typing import Dict, Any
 
-from ..utils.tool_base import BaseHandler, ToolExecution
+from utils.tool_base import BaseHandler, ToolExecution
 
 class TimeToolHandler(BaseHandler):
     """Handler for getting the current time"""
