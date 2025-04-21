@@ -20,6 +20,7 @@ class MCPBackendClient:
         self.anthropic = Anthropic()
         self.session = None
         self.tools = []
+        self.conversation_history = []
     
     async def connect(self):
         """Connect to the MCP server"""
@@ -97,12 +98,11 @@ class MCPBackendClient:
         if not self.session:
             raise Exception("Not connected to MCP server. Call connect() first.")
         
-        messages = [
-            {
-                "role": "user",
-                "content": query
-            }
-        ]
+        # Add the new query to conversation history
+        self.conversation_history.append({
+            "role": "user",
+            "content": query
+        })
 
         available_tools = [
             {
@@ -112,65 +112,78 @@ class MCPBackendClient:
             } for tool in self.tools
         ]
 
-        # Initial Claude API call
+        # Initial Claude API call with full conversation history
         response = self.anthropic.messages.create(
             model="claude-3-5-sonnet-20241022",
             max_tokens=4000,
-            messages=messages,
+            messages=self.conversation_history,
             tools=available_tools
         )
 
         tool_results = []
         final_text = []
+        max_iterations = 5  # Limit the number of iterations to prevent infinite loops
+        current_iteration = 0
 
-        for content in response.content:
-            if content.type == 'text':
-                final_text.append(content.text)
-            elif content.type == 'tool_use':
-                tool_name = content.name
-                tool_args = content.input
+        while current_iteration < max_iterations:
+            current_iteration += 1
+            has_tool_use = False
 
-                # Execute tool call
-                result = await self.call_tool(tool_name, tool_args)
-                tool_result = result.get('content', 'No content in response')
-                tool_results.append({"call": tool_name, "result": tool_result})
-                
-                final_text.append(f"[Called tool {tool_name}]")
+            for content in response.content:
+                if content.type == 'text':
+                    final_text.append(content.text)
+                    # Add the response to conversation history
+                    self.conversation_history.append({
+                        "role": "assistant",
+                        "content": content.text
+                    })
+                elif content.type == 'tool_use':
+                    has_tool_use = True
+                    tool_name = content.name
+                    tool_args = content.input
 
-                # Add tool result as a user message
-                messages.append({
-                    "role": "assistant",
-                    "content": [
-                        {
-                            "type": "tool_use",
-                            "id": content.id,
-                            "name": tool_name,
-                            "input": tool_args
-                        }
-                    ]
-                })
-                
-                messages.append({
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "tool_result",
-                            "tool_use_id": content.id,
-                            "content": tool_result
-                        }
-                    ]
-                })
+                    # Execute tool call
+                    result = await self.call_tool(tool_name, tool_args)
+                    tool_result = result.get('content', 'No content in response')
+                    tool_results.append({"call": tool_name, "result": tool_result})
+                    
+                    final_text.append(f"[Called tool {tool_name}]")
 
-                # Get next response from Claude
-                response = self.anthropic.messages.create(
-                    model="claude-3-5-sonnet-20241022",
-                    max_tokens=4000,
-                    messages=messages,
-                )
-                
-                for content_item in response.content:
-                    if content_item.type == 'text':
-                        final_text.append(content_item.text)
+                    # Add tool use and result to conversation history
+                    self.conversation_history.append({
+                        "role": "assistant",
+                        "content": [
+                            {
+                                "type": "tool_use",
+                                "id": content.id,
+                                "name": tool_name,
+                                "input": tool_args
+                            }
+                        ]
+                    })
+                    
+                    self.conversation_history.append({
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "tool_result",
+                                "tool_use_id": content.id,
+                                "content": tool_result
+                            }
+                        ]
+                    })
+
+            # If no tool was used in this iteration, we're done
+            if not has_tool_use:
+                break
+
+            # Get next response from Claude with updated conversation history
+            response = self.anthropic.messages.create(
+                model="claude-3-5-sonnet-20241022",
+                max_tokens=4000,
+                messages=self.conversation_history,
+                tools=available_tools
+            )
 
         return "\n\n".join(final_text)
 

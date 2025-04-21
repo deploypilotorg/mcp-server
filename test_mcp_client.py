@@ -19,8 +19,7 @@ async def test_mcp_client():
             "What time is it?",
             "Calculate 2 + 2",
             "What's the weather like in New York?",
-            "Clone the repo at https://github.com/deploypilotorg/example-repo.git and tell me whats in it",
-            "Deploy https://github.com/deploypilotorg/example-repo.git with your tools"
+            "Clone the repo at https://github.com/deploypilotorg/example-repo.git and list its contents",
         ]
         
         for query in test_queries:
