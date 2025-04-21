@@ -12,7 +12,7 @@ from aiohttp import web
 
 from mcp import Tool
 from handlers.basic_handlers import TimeToolHandler, CalcToolHandler, WeatherToolHandler
-from handlers.github_handler import GitHubRepoToolHandler
+from handlers.github_handler import GitHubCloneToolHandler, GitHubListFilesToolHandler
 from handlers.command_handler import CommandExecutionToolHandler
 from handlers.code_analysis_handler import CodeAnalysisToolHandler
 from handlers.autodeploy_handler import AutoDeployToolHandler
@@ -37,11 +37,15 @@ class MCPServer:
     
     def _setup_handlers(self):
         """Initialize all handlers"""
+        # Create GitHub clone handler first
+        github_clone_handler = GitHubCloneToolHandler()
+        
         self.handlers = {
             'time': TimeToolHandler(),
             'calc': CalcToolHandler(),
             'weather': WeatherToolHandler(),
-            'github': GitHubRepoToolHandler(),
+            'github_clone': github_clone_handler,
+            'github_list_files': GitHubListFilesToolHandler(github_clone_handler),
             'command': CommandExecutionToolHandler(),
             'code_analysis': CodeAnalysisToolHandler(),
             'autodeploy': AutoDeployToolHandler(),
@@ -69,7 +73,7 @@ class MCPServer:
                     "properties": {
                         "expression": {
                             "type": "string",
-                            "description": "The expression to calculate (e.g., 'add(3, 4)', 'subtract(5, 2)', 'multiply(3, 3)', 'divide(10, 2)')"
+                            "description": "The expression to calculate"
                         }
                     },
                     "required": ["expression"]
@@ -84,7 +88,7 @@ class MCPServer:
                     "properties": {
                         "location": {
                             "type": "string",
-                            "description": "The location to get weather for (e.g., 'New York', 'London', 'Tokyo', 'Sydney', 'Paris')"
+                            "description": "The location to get weather for"
                         }
                     },
                     "required": ["location"]
@@ -92,50 +96,38 @@ class MCPServer:
                 handler=self.handlers['weather']
             ),
             Tool(
-                name="github_repo",
-                description="Clone and analyze GitHub repositories",
+                name="github_clone",
+                description="Clone a GitHub repository",
                 inputSchema={
                     "type": "object",
                     "properties": {
-                        "action": {
-                            "type": "string",
-                            "description": "The action to perform",
-                            "enum": ["clone", "list_files", "read_file", "get_repo_info"]
-                        },
                         "repo_url": {
                             "type": "string",
-                            "description": "The URL of the GitHub repository"
-                        },
-                        "path": {
-                            "type": "string",
-                            "description": "The path to list files from (for list_files action)"
-                        },
-                        "file_path": {
-                            "type": "string",
-                            "description": "The path of the file to read (for read_file action)"
+                            "description": "URL of the GitHub repository to clone"
                         }
                     },
-                    "required": ["action"]
+                    "required": ["repo_url"]
                 },
-                handler=self.handlers['github']
+                handler=self.handlers['github_clone']
+            ),
+            Tool(
+                name="github_list_files",
+                description="List files in a cloned GitHub repository",
+                inputSchema={
+                    "type": "object",
+                    "properties": {}
+                },
+                handler=self.handlers['github_list_files']
             ),
             Tool(
                 name="execute_command",
-                description="Execute a command in the system shell and return the result",
+                description="Execute a command in the system shell",
                 inputSchema={
                     "type": "object",
                     "properties": {
                         "command": {
                             "type": "string",
                             "description": "The command to execute"
-                        },
-                        "working_dir": {
-                            "type": "string",
-                            "description": "The working directory to execute the command in (optional)"
-                        },
-                        "timeout": {
-                            "type": "number",
-                            "description": "Timeout in seconds (default: 30)"
                         }
                     },
                     "required": ["command"]
@@ -144,77 +136,46 @@ class MCPServer:
             ),
             Tool(
                 name="analyze_code",
-                description="Analyze code in the repository",
+                description="Analyze code in a repository",
                 inputSchema={
                     "type": "object",
                     "properties": {
-                        "action": {
+                        "path": {
                             "type": "string",
-                            "description": "The analysis action to perform",
-                            "enum": ["analyze_languages", "find_todos", "analyze_complexity", "search_code", "get_dependencies"]
-                        },
-                        "repo_path": {
-                            "type": "string",
-                            "description": "The path to the repository"
-                        },
-                        "file_path": {
-                            "type": "string",
-                            "description": "The path of the file to analyze (for analyze_complexity action)"
-                        },
-                        "query": {
-                            "type": "string",
-                            "description": "The search query (for search_code action)"
+                            "description": "Path to the code to analyze"
                         }
                     },
-                    "required": ["action", "repo_path"]
+                    "required": ["path"]
                 },
                 handler=self.handlers['code_analysis']
             ),
             Tool(
                 name="autodeploy",
-                description="Automate deployment of code repositories",
+                description="Automatically deploy a repository",
                 inputSchema={
                     "type": "object",
                     "properties": {
-                        "action": {
+                        "repo_url": {
                             "type": "string",
-                            "description": "The deployment action to perform",
-                            "enum": ["prepare_deployment", "start_deployment", "get_status", "abort_deployment", "detect_deployment_type"]
-                        },
-                        "repo_path": {
-                            "type": "string",
-                            "description": "The path to the repository"
-                        },
-                        "deploy_config": {
-                            "type": "object",
-                            "description": "Deployment configuration (for prepare_deployment action)"
+                            "description": "URL of the repository to deploy"
                         }
                     },
-                    "required": ["action"]
+                    "required": ["repo_url"]
                 },
                 handler=self.handlers['autodeploy']
             ),
             Tool(
                 name="ui_generator",
-                description="Generate and run UI for applications in the repository",
+                description="Generate UI for a repository",
                 inputSchema={
                     "type": "object",
                     "properties": {
-                        "action": {
+                        "repo_url": {
                             "type": "string",
-                            "description": "The action to perform",
-                            "enum": ["scan_apps", "generate_ui", "stop_ui"]
-                        },
-                        "app_path": {
-                            "type": "string",
-                            "description": "The path to the application entry point (for generate_ui action)"
-                        },
-                        "session_id": {
-                            "type": "string",
-                            "description": "The session ID of a running UI (for stop_ui action)"
+                            "description": "URL of the repository to generate UI for"
                         }
                     },
-                    "required": ["action"]
+                    "required": ["repo_url"]
                 },
                 handler=self.handlers['ui_generator']
             )
@@ -222,16 +183,17 @@ class MCPServer:
     
     def share_repo_info(self):
         """Share repository information between handlers"""
-        github_handler = self.handlers['github']
+        github_clone_handler = self.handlers['github_clone']
         
         for handler_name, handler in self.handlers.items():
-            if handler_name != 'github' and hasattr(handler, 'repo_path'):
-                handler.repo_path = github_handler.repo_path
-                handler.repo_name = github_handler.repo_name
-                handler.repo_url = github_handler.repo_url
+            if handler_name != 'github_clone' and hasattr(handler, 'repo_path'):
+                handler.repo_path = github_clone_handler.repo_path
+                handler.repo_name = github_clone_handler.repo_name
+                handler.repo_url = github_clone_handler.repo_url
     
     async def handle_initialize(self, request=None):
         """Handle initialize request"""
+        logger.debug("Handling initialize request")
         response = {
             "type": "initialize_result",
             "supportedVersions": ["0.1.0"],
@@ -241,10 +203,12 @@ class MCPServer:
                 "inputSchema": tool.inputSchema
             } for tool in self.tools]
         }
+        logger.debug(f"Initialize response: {json.dumps(response, indent=2)}")
         return response
     
     async def handle_list_tools(self, request=None):
         """Handle list_tools request"""
+        logger.debug("Handling list_tools request")
         response = {
             "type": "list_tools_result",
             "tools": [{
@@ -253,46 +217,60 @@ class MCPServer:
                 "inputSchema": tool.inputSchema
             } for tool in self.tools]
         }
+        logger.debug(f"List tools response: {json.dumps(response, indent=2)}")
         return response
     
     async def handle_execute_tool(self, tool_name, arguments):
         """Handle execute_tool request"""
+        logger.debug(f"Handling execute_tool request for tool: {tool_name}")
+        logger.debug(f"Tool arguments: {json.dumps(arguments, indent=2)}")
+        
         # Find the tool
         tool = next((t for t in self.tools if t.name == tool_name), None)
         
         if not tool:
-            return {
+            error_response = {
                 "type": "error",
                 "message": f"Tool '{tool_name}' not found"
             }
+            logger.error(f"Tool not found response: {json.dumps(error_response, indent=2)}")
+            return error_response
         
         try:
             # Execute the tool
             result = await tool.handler.execute(arguments)
             
             # Update shared repository information
-            if tool_name == "github_repo" and arguments.get("action") == "clone":
+            if tool_name == "github_clone":
                 self.share_repo_info()
             
-            return {
+            response = {
                 "type": "execute_tool_result",
                 "content": result.content
             }
+            logger.debug(f"Tool execution response: {json.dumps(response, indent=2)}")
+            return response
         except Exception as e:
-            return {
+            error_response = {
                 "type": "error",
                 "message": f"Error executing tool: {str(e)}"
             }
+            logger.error(f"Tool execution error response: {json.dumps(error_response, indent=2)}")
+            return error_response
     
     # HTTP handlers
     async def http_initialize(self, request):
         """HTTP handler for initialize request"""
+        logger.debug("Handling HTTP initialize request")
         response = await self.handle_initialize()
+        logger.debug(f"Sending HTTP initialize response: {json.dumps(response, indent=2)}")
         return web.json_response(response)
     
     async def http_list_tools(self, request):
         """HTTP handler for list_tools request"""
+        logger.debug("Handling HTTP list_tools request")
         response = await self.handle_list_tools()
+        logger.debug(f"Sending HTTP list_tools response: {json.dumps(response, indent=2)}")
         return web.json_response(response)
     
     async def http_execute_tool(self, request):
@@ -312,18 +290,23 @@ class MCPServer:
             logger.debug(f"Arguments: {arguments}")
             
             if not tool_name:
-                return web.json_response({
+                error_response = {
                     "type": "error",
                     "message": "Tool name not provided"
-                }, status=400)
+                }
+                logger.error(f"Sending error response: {json.dumps(error_response, indent=2)}")
+                return web.json_response(error_response, status=400)
             
             response = await self.handle_execute_tool(tool_name, arguments)
+            logger.debug(f"Sending HTTP execute_tool response: {json.dumps(response, indent=2)}")
             return web.json_response(response)
         except json.JSONDecodeError:
-            return web.json_response({
+            error_response = {
                 "type": "error",
                 "message": "Invalid JSON in request body"
-            }, status=400)
+            }
+            logger.error(f"Sending error response: {json.dumps(error_response, indent=2)}")
+            return web.json_response(error_response, status=400)
     
     async def start_http_server(self, host='0.0.0.0', port=8000):
         """Start the MCP server over HTTP"""
@@ -384,6 +367,7 @@ class MCPServer:
                     
                 # Decode and process the request
                 request = json.loads(line.decode('utf-8'))
+                logger.debug(f"Received stdio request: {json.dumps(request, indent=2)}")
                 
                 if request.get("type") == "initialize":
                     # Handle initialize request
@@ -408,6 +392,7 @@ class MCPServer:
                 
                 # Send response - write directly to transport to avoid drain_helper issue
                 response_json = json.dumps(response).encode('utf-8') + b'\n'
+                logger.debug(f"Sending stdio response: {response_json.decode('utf-8')}")
                 write_transport.write(response_json)
                     
             except asyncio.CancelledError:
@@ -419,6 +404,7 @@ class MCPServer:
                     "type": "error",
                     "message": f"Invalid JSON: {str(e)}"
                 }).encode('utf-8') + b'\n'
+                logger.error(f"Sending error response: {error_msg.decode('utf-8')}")
                 write_transport.write(error_msg)
             except Exception as e:
                 # Handle other errors
@@ -426,6 +412,7 @@ class MCPServer:
                     "type": "error",
                     "message": f"Server error: {str(e)}"
                 }).encode('utf-8') + b'\n'
+                logger.error(f"Sending error response: {error_msg.decode('utf-8')}")
                 write_transport.write(error_msg)
         
         # Clean up
