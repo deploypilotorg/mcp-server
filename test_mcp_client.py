@@ -16,7 +16,7 @@ async def test_mcp_client():
         
         # Test queries that should use different tools
         test_queries = [
-            "Clone the repo at https://github.com/deploypilotorg/example-repo.git and list its contents and then read the main.py and give me some code for a streamlit interface for the app",
+            "Clone the repo at https://github.com/deploypilotorg/example-repo.git, create a venv, install the requirements and run 'streamlit run streamlit_app.py' and tell me if it runs successfully",
         ]
         
         for query in test_queries:

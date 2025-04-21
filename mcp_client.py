@@ -122,7 +122,7 @@ class MCPBackendClient:
 
         tool_results = []
         final_text = []
-        max_iterations = 5  # Limit the number of iterations to prevent infinite loops
+        max_iterations = 100  # Limit the number of iterations to prevent infinite loops
         current_iteration = 0
 
         while current_iteration < max_iterations:
