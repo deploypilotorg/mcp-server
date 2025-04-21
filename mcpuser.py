@@ -32,10 +32,9 @@ async def main():
     # Create MCPClient from configuration dictionary
     client = MCPClient.from_dict(config)
 
-    # Create LLM with increased max_tokens
     llm = ChatAnthropic(
         model="claude-3-7-sonnet-20250219",
-        max_tokens=8192
+        max_tokens=64000
     )
 
     # Create agent with the client
@@ -43,7 +42,7 @@ async def main():
 
     # Run the query with more specific instructions
     result = await agent.run(
-        """Please open a pull request from the 'test-branch' branch to the 'main' branch in the repository https://github.com/deploypilotorg/example-repo.git. Make sure you are calling the appropriate tools at every single step"""
+        """Please open a pull request from the 'test-branch' branch to the 'main' branch in the repository https://github.com/deploypilotorg/example-repo.git. Make sure you are calling the appropriate tools at every single step, use the minimum number of tools possible"""
     )
     print(f"\nResult: {result}")
 
