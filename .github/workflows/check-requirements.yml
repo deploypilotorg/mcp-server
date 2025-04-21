@@ -75,6 +75,9 @@ jobs:
           # Find packages that are new but not in requirements.txt
           comm -23 new_packages_clean.txt requirements_packages.txt > missing_packages.txt
           
+          # Remove the project itself from missing packages if it exists
+          sed -i '/^mcp-server$/d' missing_packages.txt
+          
           if [ -s missing_packages.txt ]; then
             echo "The following packages were added but not listed in requirements.txt:"
             cat missing_packages.txt
