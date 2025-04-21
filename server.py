@@ -17,6 +17,7 @@ from handlers.command_handler import CommandExecutionToolHandler
 from handlers.code_analysis_handler import CodeAnalysisToolHandler
 from handlers.autodeploy_handler import AutoDeployToolHandler
 from handlers.ui_generator_handler import UIGeneratorToolHandler
+from handlers.codingmcp_handler import CodingMCPHandler
 from utils.tool_base import ToolExecution
 
 # Setup logging
@@ -49,7 +50,8 @@ class MCPServer:
             'command': CommandExecutionToolHandler(),
             'code_analysis': CodeAnalysisToolHandler(),
             'autodeploy': AutoDeployToolHandler(),
-            'ui_generator': UIGeneratorToolHandler()
+            'ui_generator': UIGeneratorToolHandler(),
+            'codingmcp': CodingMCPHandler()
         }
     
     def _setup_tools(self):
@@ -178,6 +180,57 @@ class MCPServer:
                     "required": ["repo_url"]
                 },
                 handler=self.handlers['ui_generator']
+            ),
+            Tool(
+                name="codingmcp",
+                description="Use Claude as a pair programming assistant to manipulate code in a workspace",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "action": {
+                            "type": "string",
+                            "description": "The action to perform: initialize, read_file, write_file, list_files, run_command, run_test, run_format, git_commit"
+                        },
+                        "workspace_path": {
+                            "type": "string",
+                            "description": "Path to the workspace directory (required for initialize)"
+                        },
+                        "auto_init_git": {
+                            "type": "boolean",
+                            "description": "Whether to initialize git repository if it doesn't exist"
+                        },
+                        "file_path": {
+                            "type": "string",
+                            "description": "Path to the file relative to workspace (for read_file and write_file)"
+                        },
+                        "content": {
+                            "type": "string",
+                            "description": "Content to write to file (for write_file)"
+                        },
+                        "subdir": {
+                            "type": "string",
+                            "description": "Subdirectory within workspace to list files (for list_files)"
+                        },
+                        "pattern": {
+                            "type": "string",
+                            "description": "Glob pattern for file matching (for list_files)"
+                        },
+                        "command": {
+                            "type": "string",
+                            "description": "Command to execute (for run_command)"
+                        },
+                        "test_selector": {
+                            "type": "string",
+                            "description": "Optional test selector to run specific tests (for run_test)"
+                        },
+                        "message": {
+                            "type": "string",
+                            "description": "Commit message (for git_commit)"
+                        }
+                    },
+                    "required": ["action"]
+                },
+                handler=self.handlers['codingmcp']
             )
         ]
     
