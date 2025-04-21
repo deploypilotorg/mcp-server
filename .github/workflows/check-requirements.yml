@@ -24,6 +24,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install pylint
           
       - name: Get changed Python files
         id: changed-files
@@ -44,8 +45,7 @@ jobs:
             echo "CHANGED_FILES=" >> $GITHUB_ENV
           fi
           
-      - name: Check for new imports
-        id: check-imports
+      - name: Check imports
         run: |
           # Create a temporary virtual environment
           python -m venv /tmp/venv
@@ -54,35 +54,59 @@ jobs:
           # Install only the packages from requirements.txt
           pip install -r requirements.txt
           
-          # Get the list of installed packages
-          pip freeze > before_install.txt
+          # Create a Python script to analyze imports
+          cat > analyze_imports.py << 'EOF'
+          import ast
+          import sys
+          import os
+          from typing import Set
           
-          # Install the changed files to get their dependencies
-          if [ -s changed_files.txt ]; then
-            pip install -e .
-          fi
+          def get_imports(file_path: str) -> Set[str]:
+              with open(file_path, 'r') as f:
+                  tree = ast.parse(f.read())
+              
+              imports = set()
+              for node in ast.walk(tree):
+                  if isinstance(node, ast.Import):
+                      for name in node.names:
+                          imports.add(name.name.split('.')[0])
+                  elif isinstance(node, ast.ImportFrom):
+                      if node.module:
+                          imports.add(node.module.split('.')[0])
+              
+              return imports
           
-          # Get the new list of installed packages
-          pip freeze > after_install.txt
+          def get_installed_packages() -> Set[str]:
+              import pkg_resources
+              return {pkg.key for pkg in pkg_resources.working_set}
           
-          # Find new packages that were installed
-          comm -13 <(sort before_install.txt) <(sort after_install.txt) > new_packages.txt
+          def main():
+              if not os.path.exists('changed_files.txt'):
+                  return
+                  
+              with open('changed_files.txt', 'r') as f:
+                  changed_files = [line.strip() for line in f if line.strip()]
+              
+              if not changed_files:
+                  return
+              
+              all_imports = set()
+              for file in changed_files:
+                  if os.path.exists(file):
+                      all_imports.update(get_imports(file))
+              
+              installed_packages = get_installed_packages()
+              missing_packages = all_imports - installed_packages
+              
+              if missing_packages:
+                  print("The following packages are imported but not installed:")
+                  for pkg in sorted(missing_packages):
+                      print(f"- {pkg}")
+                  sys.exit(1)
           
-          # Compare with requirements.txt
-          grep -v '^#' requirements.txt | cut -d'=' -f1 | sort > requirements_packages.txt
-          grep -v '^#' new_packages.txt | cut -d'=' -f1 | sort > new_packages_clean.txt
+          if __name__ == '__main__':
+              main()
+          EOF
           
-          # Find packages that are new but not in requirements.txt
-          comm -23 new_packages_clean.txt requirements_packages.txt > missing_packages.txt
-          
-          # Remove the project itself from missing packages if it exists
-          sed -i '/^mcp-server$/d' missing_packages.txt
-          # Remove the project's Git URL from missing packages
-          sed -i '/^git+https:\/\/github.com\/deploypilotorg\/mcp-server/d' missing_packages.txt
-          
-          if [ -s missing_packages.txt ]; then
-            echo "The following packages were added but not listed in requirements.txt:"
-            cat missing_packages.txt
-            echo "Please update requirements.txt with the missing packages."
-            exit 1
-          fi 
+          # Run the analysis
+          python analyze_imports.py 
