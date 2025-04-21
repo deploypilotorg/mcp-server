@@ -77,6 +77,8 @@ jobs:
           
           # Remove the project itself from missing packages if it exists
           sed -i '/^mcp-server$/d' missing_packages.txt
+          # Remove the project's Git URL from missing packages
+          sed -i '/^git+https:\/\/github.com\/deploypilotorg\/mcp-server/d' missing_packages.txt
           
           if [ -s missing_packages.txt ]; then
             echo "The following packages were added but not listed in requirements.txt:"
