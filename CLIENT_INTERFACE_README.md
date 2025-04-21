@@ -28,7 +28,7 @@ pip install -r requirements.txt
 2. Make sure your MCP server is running:
 
 ```bash
-python server.py
+python server.py --http
 ```
 
 3. Start the client interface:
