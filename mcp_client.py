@@ -186,28 +186,3 @@ class MCPBackendClient:
             )
 
         return "\n\n".join(final_text)
-
-# Example usage in a FastAPI route
-"""
-from fastapi import FastAPI, HTTPException
-from mcp_client import MCPBackendClient
-
-app = FastAPI()
-client = MCPBackendClient()
-
-@app.on_event("startup")
-async def startup_event():
-    await client.connect()
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    await client.close()
-
-@app.post("/query")
-async def process_query(query: str):
-    try:
-        response = await client.process_query(query)
-        return {"response": response}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-""" 

@@ -16,10 +16,7 @@ async def test_mcp_client():
         
         # Test queries that should use different tools
         test_queries = [
-            "What time is it?",
-            "Calculate 2 + 2",
-            "What's the weather like in New York?",
-            "Clone the repo at https://github.com/deploypilotorg/example-repo.git and list its contents",
+            "Clone the repo at https://github.com/deploypilotorg/example-repo.git and list its contents and then read the main.py and give me some code for a streamlit interface for the app",
         ]
         
         for query in test_queries:
