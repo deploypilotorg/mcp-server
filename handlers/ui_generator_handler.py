@@ -463,4 +463,46 @@ To stop the server, use the 'stop_ui' action with the session ID.
         """Get an available port"""
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind(('', 0))
-            return s.getsockname()[1] 
+            return s.getsockname()[1]
+
+if __name__ == "__main__":
+    import asyncio
+    
+    async def test_ui_generator_handler():
+        handler = UIGeneratorToolHandler()
+        
+        # Test scan_apps
+        print("\nTesting scan_apps action...")
+        result = await handler.execute({
+            "action": "scan_apps",
+            "repo_path": "."
+        })
+        print(result.content)
+        
+        # Test generate_ui for Python app
+        print("\nTesting generate_ui action for Python app...")
+        result = await handler.execute({
+            "action": "generate_ui",
+            "repo_path": ".",
+            "app_path": "handlers/ui_generator_handler.py"
+        })
+        print(result.content)
+        
+        # Test generate_ui for HTML app
+        print("\nTesting generate_ui action for HTML app...")
+        result = await handler.execute({
+            "action": "generate_ui",
+            "repo_path": ".",
+            "app_path": "index.html"
+        })
+        print(result.content)
+        
+        # Test stop_ui
+        print("\nTesting stop_ui action...")
+        result = await handler.execute({
+            "action": "stop_ui",
+            "session_id": "test_session"
+        })
+        print(result.content)
+    
+    asyncio.run(test_ui_generator_handler()) 
