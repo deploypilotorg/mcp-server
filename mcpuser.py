@@ -1,9 +1,9 @@
 import asyncio
-import os
+
+import mcp_use
 from dotenv import load_dotenv
 from langchain_anthropic import ChatAnthropic
 from mcp_use import MCPAgent, MCPClient
-import mcp_use
 
 mcp_use.set_debug(2)
 
@@ -15,21 +15,19 @@ async def main():
     # Create configuration dictionary
     config = {
         "mcpServers": {
-
-                    "cli-mcp-server": {
-                        "command": "uvx",
-                        "args": ["cli-mcp-server"],
-                        "env": {
-                            "ALLOWED_DIR": "/Users/zaidalsaheb/projects/example-repo",
-                            "ALLOWED_COMMANDS": "all",
-                            "ALLOWED_FLAGS": "all",
-                            "MAX_COMMAND_LENGTH": "1024",
-                            "COMMAND_TIMEOUT": "30",
-                        },
-                    }
-                }
+            "cli-mcp-server": {
+                "command": "uvx",
+                "args": ["cli-mcp-server"],
+                "env": {
+                    "ALLOWED_DIR": "/Users/zaidalsaheb/projects/example-repo",
+                    "ALLOWED_COMMANDS": "all",
+                    "ALLOWED_FLAGS": "all",
+                    "MAX_COMMAND_LENGTH": "1024",
+                    "COMMAND_TIMEOUT": "30",
+                },
             }
-
+        }
+    }
 
     # Create MCPClient from configuration dictionary
     client = MCPClient.from_dict(config)

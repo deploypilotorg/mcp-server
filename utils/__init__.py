@@ -1,3 +1,3 @@
 """
 MCP Server utilities package
-""" 
+"""
