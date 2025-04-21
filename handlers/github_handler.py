@@ -153,4 +153,43 @@ class GitHubRepoToolHandler(BaseHandler):
                 return ToolExecution(content=f"Error getting repository information: {str(e)}")
         
         else:
-            return ToolExecution(content=f"Error: Unknown action '{action}'. Available actions: clone, list_files, read_file, get_repo_info") 
+            return ToolExecution(content=f"Error: Unknown action '{action}'. Available actions: clone, list_files, read_file, get_repo_info")
+
+if __name__ == "__main__":
+    import asyncio
+    
+    async def test_github_handler():
+        handler = GitHubRepoToolHandler()
+        
+        # Test clone
+        print("\nTesting clone action...")
+        result = await handler.execute({
+            "action": "clone",
+            "repo_url": "https://github.com/octocat/Hello-World.git"
+        })
+        print(result.content)
+        
+        # Test list_files
+        print("\nTesting list_files action...")
+        result = await handler.execute({
+            "action": "list_files",
+            "path": ""
+        })
+        print(result.content)
+        
+        # Test get_repo_info
+        print("\nTesting get_repo_info action...")
+        result = await handler.execute({
+            "action": "get_repo_info"
+        })
+        print(result.content)
+        
+        # Test read_file
+        print("\nTesting read_file action...")
+        result = await handler.execute({
+            "action": "read_file",
+            "file_path": "README.md"
+        })
+        print(result.content)
+    
+    asyncio.run(test_github_handler()) 
