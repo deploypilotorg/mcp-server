@@ -82,3 +82,35 @@ To add a new tool:
 2. Implement the `execute` method in your handler
 3. Register your handler in the `_setup_handlers` method in `server.py`
 4. Create a corresponding tool definition in the `_setup_tools` method 
+
+## Testing
+
+The server includes a comprehensive set of unit tests using pytest and pytest-asyncio. 
+
+### Running Tests
+
+To run the tests:
+
+```
+pytest
+```
+
+For more verbose output:
+
+```
+pytest -v
+```
+
+To run tests with code coverage:
+
+```
+pytest --cov=handlers --cov=utils
+```
+
+### Adding New Tests
+
+When adding new handlers, create corresponding test files in the `tests` directory:
+
+1. Create a test file named `test_yourhandler.py`
+2. Use pytest fixtures from `conftest.py` where appropriate
+3. Write tests for all public methods in your handler 
