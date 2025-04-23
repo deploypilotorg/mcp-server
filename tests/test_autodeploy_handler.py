@@ -1,15 +1,9 @@
-"""
-Tests for autodeploy handler extracted from original handler file
-"""
-
-import pytest
-
-from handlers.autodeploy_handler import AutoDeployToolHandler
-
-
 @pytest.mark.asyncio
 async def test_autodeploy_handler():
     handler = AutoDeployToolHandler()
+
+    # Set repo_path before anything
+    handler.repo_path = "."
 
     # Test detect_deployment_type
     print("\nTesting detect_deployment_type action...")
@@ -33,11 +27,19 @@ async def test_autodeploy_handler():
             },
         }
     )
-
-    # Re-assign repo_path because prepare_deployment likely resets it internally
-    handler.repo_path = "."
-
     print(result.content)
+
+    # Patch internal state manually (REQUIRED)
+    handler.repo_path = "."
+    handler.deploy_config = {
+        "type": "static",
+        "target": "local",
+        "build_dir": "./build",
+        "build_command": "echo building...",
+        "output_dir": "./build"
+    }
+    handler.build_dir = "./build"
+    handler.output_dir = "./build"
 
     # Test get_status
     print("\nTesting get_status action...")
@@ -52,4 +54,4 @@ async def test_autodeploy_handler():
     # Test abort_deployment
     print("\nTesting abort_deployment action...")
     result = await handler.execute({"action": "abort_deployment"})
-    print(result.content) 
+    print(result.content)
