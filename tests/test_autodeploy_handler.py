@@ -11,15 +11,17 @@ from handlers.autodeploy_handler import AutoDeployToolHandler
 async def test_autodeploy_handler():
     handler = AutoDeployToolHandler()
 
-    # Set all necessary mock state
-    handler.repo_path = "."  # avoid NoneType issues
+    # Fully mock internal state to prevent deployment errors
+    handler.repo_path = "."
     handler.deploy_config = {
         "type": "static",
         "target": "local",
         "build_dir": "./build",
-        "build_command": "echo Building...",  # 👈 critical addition!
+        "build_command": "echo Building...",
         "output_dir": "./build"
     }
+    handler.build_dir = "./build"
+    handler.output_dir = "./build"
 
     # Test detect_deployment_type
     print("\nTesting detect_deployment_type action...")
