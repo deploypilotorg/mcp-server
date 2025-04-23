@@ -1,3 +1,6 @@
+import pytest
+
+
 @pytest.mark.asyncio
 async def test_autodeploy_handler():
     handler = AutoDeployToolHandler()
