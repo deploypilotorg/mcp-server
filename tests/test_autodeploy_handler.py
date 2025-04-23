@@ -84,3 +84,7 @@ async def test_autodeploy_handler():
 # Additional step for installing the project
 def install_project():
     subprocess.run(["pip", "install", "-e", "."])
+
+# Set PYTHONPATH for the environment
+def set_pythonpath():
+    subprocess.run(["echo", "PYTHONPATH=$PYTHONPATH:$(pwd)", ">>", "$GITHUB_ENV"])

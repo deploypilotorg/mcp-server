@@ -7,7 +7,7 @@ import pytest
 import asyncio
 from unittest.mock import MagicMock
 
-from utils.tool_base import BaseHandler
+from ..utils.tool_base import BaseHandler
 
 
 @pytest.fixture
@@ -38,4 +38,4 @@ def event_loop():
     policy = asyncio.get_event_loop_policy()
     loop = policy.new_event_loop()
     yield loop
-    loop.close() 
+    loop.close()
