@@ -10,7 +10,12 @@ from handlers.autodeploy_handler import AutoDeployToolHandler
 @pytest.mark.asyncio
 async def test_autodeploy_handler():
     handler = AutoDeployToolHandler()
-    handler.repo_path = "." # To avaoid unnecessary repo path issues
+    handler.repo_path = "."  # To avoid unnecessary repo path issues
+    handler.deploy_config = {
+        "type": "static",
+        "target": "local",
+        "build_dir": "./build"  # Required to prevent prepare_deployment failure
+    }
 
     # Test detect_deployment_type
     print("\nTesting detect_deployment_type action...")
@@ -25,7 +30,7 @@ async def test_autodeploy_handler():
         {
             "action": "prepare_deployment",
             "repo_path": ".",
-            "deploy_config": {"type": "static", "target": "local"},
+            "deploy_config": handler.deploy_config,
         }
     )
     print(result.content)
@@ -43,4 +48,4 @@ async def test_autodeploy_handler():
     # Test abort_deployment
     print("\nTesting abort_deployment action...")
     result = await handler.execute({"action": "abort_deployment"})
-    print(result.content) 
+    print(result.content)
