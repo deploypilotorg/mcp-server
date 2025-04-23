@@ -10,11 +10,15 @@ from handlers.autodeploy_handler import AutoDeployToolHandler
 @pytest.mark.asyncio
 async def test_autodeploy_handler():
     handler = AutoDeployToolHandler()
-    handler.repo_path = "."  # To avoid unnecessary repo path issues
+
+    # Set all necessary mock state
+    handler.repo_path = "."  # avoid NoneType issues
     handler.deploy_config = {
         "type": "static",
         "target": "local",
-        "build_dir": "./build"  # Required to prevent prepare_deployment failure
+        "build_dir": "./build",
+        "build_command": "echo Building...",  # 👈 critical addition!
+        "output_dir": "./build"
     }
 
     # Test detect_deployment_type
