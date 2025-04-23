@@ -1,4 +1,5 @@
 import pytest
+from handlers.autodeploy_handler import AutoDeployToolHandler
 
 
 @pytest.mark.asyncio
