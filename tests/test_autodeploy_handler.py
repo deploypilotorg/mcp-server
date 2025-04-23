@@ -24,9 +24,19 @@ async def test_autodeploy_handler():
         {
             "action": "prepare_deployment",
             "repo_path": ".",
-            "deploy_config": {"type": "static", "target": "local"},
+            "deploy_config": {
+                "type": "static",
+                "target": "local",
+                "build_dir": "./build",
+                "build_command": "echo building...",
+                "output_dir": "./build"
+            },
         }
     )
+
+    # Re-assign repo_path because prepare_deployment likely resets it internally
+    handler.repo_path = "."
+
     print(result.content)
 
     # Test get_status

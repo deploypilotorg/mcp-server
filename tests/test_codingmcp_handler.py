@@ -5,6 +5,7 @@ Tests for CodingMCP handler
 import asyncio
 import os
 import pytest
+from unittest.mock import AsyncMock
 from unittest.mock import patch, MagicMock, mock_open
 
 from handlers.codingmcp_handler import CodingMCPHandler
@@ -110,12 +111,9 @@ async def test_run_command():
         # Setup the mock process
         mock_process = MagicMock()
         mock_process.returncode = 0
-        mock_process.communicate = MagicMock(
-            return_value=asyncio.Future()
-        )
-        mock_process.communicate.return_value.set_result((b"command output", b""))
-        mock_subprocess.return_value = asyncio.Future()
-        mock_subprocess.return_value.set_result(mock_process)
+        mock_process.communicate = AsyncMock(return_value=(b"command output", b""))
+        mock_subprocess.return_value = mock_process
+
         
         params = {"command": "ls -la"}
         result = await handler._run_command(params)
