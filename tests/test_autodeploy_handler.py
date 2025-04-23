@@ -7,7 +7,7 @@ import json
 import os
 from unittest.mock import patch
 from utils.tool_base import BaseHandler, ToolExecution
-from oslers.autodeploy_handler import AutoDeployToolHandler
+from ..oslers.autodeploy_handler import AutoDeployToolHandler
 import subprocess
 from typing import Any, Dict, List, Optional
 import pytest
@@ -80,3 +80,7 @@ async def test_autodeploy_handler():
         print("\nTesting abort_deployment action...")
         result = await handler.execute({"action": "abort_deployment"})
         print(result.content)
+
+# Additional step for installing the project
+def install_project():
+    subprocess.run(["pip", "install", "-e", "."])
