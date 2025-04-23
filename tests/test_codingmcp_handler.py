@@ -5,7 +5,7 @@ Tests for CodingMCP handler
 import asyncio
 import os
 import pytest
-from unittest.mock import patch, MagicMock, mock_open
+from unittest.mock import patch, MagicMock, mock_open, AsyncMock
 
 from handlers.codingmcp_handler import CodingMCPHandler
 from utils.tool_base import ToolExecution
@@ -106,16 +106,11 @@ async def test_run_command():
     handler.workspace_dir = '/tmp/mock-workspace'
     
     # Mock asyncio.create_subprocess_shell
-    with patch('asyncio.create_subprocess_shell') as mock_subprocess:
-        # Setup the mock process
+    with patch("asyncio.create_subprocess_shell") as mock_subprocess:
         mock_process = MagicMock()
         mock_process.returncode = 0
-        mock_process.communicate = MagicMock(
-            return_value=asyncio.Future()
-        )
-        mock_process.communicate.return_value.set_result((b"command output", b""))
-        mock_subprocess.return_value = asyncio.Future()
-        mock_subprocess.return_value.set_result(mock_process)
+        mock_process.communicate = AsyncMock(return_value=(b"command output", b""))
+        mock_subprocess.return_value = mock_process
         
         params = {"command": "ls -la"}
         result = await handler._run_command(params)
@@ -145,4 +140,4 @@ async def test_git_commit():
         result = await handler._git_commit(params)
         
         assert isinstance(result, ToolExecution)
-        assert "Successfully committed" in result.content 
+        assert "Successfully committed" in result.content

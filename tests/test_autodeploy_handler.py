@@ -10,6 +10,7 @@ from handlers.autodeploy_handler import AutoDeployToolHandler
 @pytest.mark.asyncio
 async def test_autodeploy_handler():
     handler = AutoDeployToolHandler()
+    handler.repo_path = "." # To avaoid unnecessary repo path issues
 
     # Test detect_deployment_type
     print("\nTesting detect_deployment_type action...")
