@@ -7,7 +7,7 @@ import pytest
 import asyncio
 from unittest.mock import MagicMock
 
-from ..utils.tool_base import BaseHandler
+from utils.tool_base import BaseHandler
 
 
 @pytest.fixture
@@ -39,3 +39,9 @@ def event_loop():
     loop = policy.new_event_loop()
     yield loop
     loop.close()
+
+# Set PYTHONPATH
+os.environ["PYTHONPATH"] = f"{os.environ.get('PYTHONPATH', '')}:{os.getcwd()}"
+
+# Install project
+os.system("pip install -e .")
