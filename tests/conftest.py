@@ -38,10 +38,4 @@ def event_loop():
     policy = asyncio.get_event_loop_policy()
     loop = policy.new_event_loop()
     yield loop
-    loop.close()
-
-# Set PYTHONPATH
-os.environ["PYTHONPATH"] = f"{os.environ.get('PYTHONPATH', '')}:{os.getcwd()}"
-
-# Install project
-os.system("pip install -e .")
+    loop.close() 
